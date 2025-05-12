@@ -24,9 +24,16 @@
       text-align: center;
       position: relative;
     }
+    .counter {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 1rem;
+      color: #555;
+    }
     .question {
       font-size: 1.5rem;
-      margin-bottom: 1rem;
+      margin: 2rem 0 1rem;
     }
     input[type='number'] {
       font-size: 1.2rem;
@@ -86,6 +93,7 @@
 <body>
   <div class="quiz-container">
     <div id="quiz">
+      <div class="counter" id="counter">Question 1 of 20</div>
       <div class="timer">Time left: <span id="time">60</span>s</div>
       <div class="question" id="question">Question text</div>
       <input type="number" id="answer" autocomplete="off" />
@@ -126,6 +134,7 @@
     let score = 0;
     let timer;
 
+    const counterEl = document.getElementById('counter');
     const timeEl = document.getElementById('time');
     const questionEl = document.getElementById('question');
     const answerEl = document.getElementById('answer');
@@ -140,7 +149,8 @@
     function loadQuestion() {
       if (current >= questions.length) return showResult();
       const q = questions[current];
-      questionEl.textContent = `Question ${current + 1} of ${questions.length}: ${q.question}`;
+      counterEl.textContent = `Question ${current + 1} of ${questions.length}`;
+      questionEl.textContent = q.question;
       answerEl.value = '';
       answerEl.disabled = false;
       checkBtn.disabled = false;
@@ -185,7 +195,6 @@
       clearInterval(timer);
       quizEl.style.display = 'none';
       scoreText.textContent = `Your Score: ${score} / ${questions.length}`;
-      // Celebration or sad emoji
       if (score > 15) {
         finalFeedbackEl.innerHTML = '<span class="celebrate">🎉🎈🌸🎊</span>';
       } else {
