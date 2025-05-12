@@ -1,1 +1,197 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fun Maths Quiz for Kids</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #FFD3B4, #FFB6C1);
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .quiz-container {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+      padding: 2rem;
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+    }
+    .question {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    input[type='number'] {
+      font-size: 1.2rem;
+      padding: 0.5rem;
+      width: 100px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      outline: none;
+      margin-right: 0.5rem;
+    }
+    .btn {
+      background: #FF8C00;
+      color: #fff;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #E07B00;
+    }
+    .timer {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: #FF4500;
+    }
+    .score {
+      font-size: 1.4rem;
+      margin: 1rem 0;
+    }
+    #feedback, #finalFeedback {
+      font-size: 1.5rem;
+      margin-top: 1rem;
+      min-height: 2rem;
+      color: #333;
+    }
+    /* simple pop animation for balloons/flowers */
+    .celebrate {
+      animation: pop 0.5s ease-out;
+      display: inline-block;
+    }
+    @keyframes pop {
+      0% { transform: scale(0); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <div id="quiz">
+      <div class="timer">Time left: <span id="time">60</span>s</div>
+      <div class="question" id="question">Question text</div>
+      <input type="number" id="answer" autocomplete="off" />
+      <button class="btn" id="checkBtn">Check</button>
+      <div id="feedback"></div>
+    </div>
+    <div id="result" style="display:none;">
+      <div class="score" id="scoreText"></div>
+      <div id="finalFeedback"></div>
+      <button class="btn" id="restartBtn">Restart Quiz</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [];
+    function randomQuestion() {
+      const a = Math.ceil(Math.random() * 20);
+      const b = Math.ceil(Math.random() * 20);
+      const ops = ['+', '-', '×', '÷'];
+      const op = ops[Math.floor(Math.random() * ops.length)];
+      let question, answer;
+      switch (op) {
+        case '+': question = `${a} + ${b}`; answer = a + b; break;
+        case '-': question = `${a} - ${b}`; answer = a - b; break;
+        case '×': question = `${a} × ${b}`; answer = a * b; break;
+        case '÷':
+          const prod = a * b;
+          question = `${prod} ÷ ${a}`;
+          answer = b;
+          break;
+      }
+      return { question, answer };
+    }
+    for (let i = 0; i < 20; i++) questions.push(randomQuestion());
+
+    let current = 0;
+    let score = 0;
+    let timer;
+
+    const timeEl = document.getElementById('time');
+    const questionEl = document.getElementById('question');
+    const answerEl = document.getElementById('answer');
+    const checkBtn = document.getElementById('checkBtn');
+    const feedbackEl = document.getElementById('feedback');
+    const quizEl = document.getElementById('quiz');
+    const resultEl = document.getElementById('result');
+    const scoreText = document.getElementById('scoreText');
+    const finalFeedbackEl = document.getElementById('finalFeedback');
+    const restartBtn = document.getElementById('restartBtn');
+
+    function loadQuestion() {
+      if (current >= questions.length) return showResult();
+      const q = questions[current];
+      questionEl.textContent = `Question ${current + 1} of ${questions.length}: ${q.question}`;
+      answerEl.value = '';
+      answerEl.disabled = false;
+      checkBtn.disabled = false;
+      feedbackEl.textContent = '';
+      answerEl.focus();
+
+      let timeLeft = 60;
+      timeEl.textContent = timeLeft;
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          nextQuestion(false);
+        }
+      }, 1000);
+    }
+
+    function nextQuestion(checked) {
+      clearInterval(timer);
+      const userAns = parseFloat(answerEl.value);
+      const correctAns = questions[current].answer;
+      let message;
+      if (checked && userAns === correctAns) {
+        score++;
+        message = '✅ Correct!';
+      } else {
+        message = `❌ Time's up or wrong! The correct answer was ${correctAns}.`;
+      }
+      feedbackEl.textContent = message;
+      answerEl.disabled = true;
+      checkBtn.disabled = true;
+
+      setTimeout(() => {
+        current++;
+        loadQuestion();
+      }, 3000);
+    }
+
+    function showResult() {
+      clearInterval(timer);
+      quizEl.style.display = 'none';
+      scoreText.textContent = `Your Score: ${score} / ${questions.length}`;
+      // Celebration or sad emoji
+      if (score > 15) {
+        finalFeedbackEl.innerHTML = '<span class="celebrate">🎉🎈🌸🎊</span>';
+      } else {
+        finalFeedbackEl.innerHTML = '<span class="celebrate">😢</span>';
+      }
+      resultEl.style.display = 'block';
+    }
+
+    checkBtn.addEventListener('click', () => nextQuestion(true));
+    answerEl.addEventListener('keypress', e => {
+      if (e.key === 'Enter') checkBtn.click();
+    });
+    restartBtn.addEventListener('click', () => location.reload());
+
+    loadQuestion();
+  </script>
+</body>
+</html>
